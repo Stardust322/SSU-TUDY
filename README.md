@@ -1,5 +1,6 @@
-# SSU-TUDY
-Soongsil Univ. AI Convergence. 고급 프로그래밍 및 실습
+# SSU:TUDY
+### Soongsil Univ. AI Convergence. 고급 프로그래밍 및 실습
+<hr/>
 <img src="./icon/ssutudy_logo.png" width=100 height=100 />
 
 ### SSU:TUDY v1.0.0 (2024.06.15 released.)
