@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<title>SSU:TUDY 로그인</title>
+<link rel="website icon" type="png" href="http://localhost:8080/ssutudy_logo.png">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        background-color: #ffffff;
+    }
+
+    .logo {
+        margin-top: 50px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .logo img {
+        height: 100px;
+    }
+
+    .slogan {
+        font-size: 20px;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+
+    .login-box {
+        background-color: #ddd;
+        width: 300px;
+        margin: 30px auto;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-box label {
+        display: block;
+        margin-top: 10px;
+        text-align: left;
+    }
+
+    .login-box input[type="text"],
+    .login-box input[type="password"] {
+        width: 93%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .login-box button {
+        background-color: #006694;
+        color: white;
+        font-size: 18px;
+        border: none;
+        width: 100%;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .login-box button:hover {
+        background-color: #009bcb;
+    }
+
+    .footer {
+        margin-top: 240px;
+        font-size: 14px;
+        color: #555;
+    }
+</style>
+</head>
+<body>
+<div class="logo">
+    <img src="ssutudy_logo.png" alt="SSU:TUDY 로고" />
+    <div class="slogan">당신과 함께,<br />SSU:TUDY.</div>
+</div>
+
+<div class="login-box">
+    <label for="student-id">학번 :</label>
+    <input type="text" id="student-id" onkeydown="enterKey(event) " />
+
+    <label for="password">비밀번호 :</label>
+    <input type="password" id="password" onkeydown="enterKey(event) "/>
+
+    <button onclick="login() ">
+        🔒 로그인
+    </button>
+</div>
+
+<div class="footer">
+    Copyrights 2025. Lee SangHwa All rights reserved.
+</div>
+
+<script>
+async function getKeyFromPassword(password, salt = 'salt') {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        enc.encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+    );
+
+    return crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: enc.encode(salt),
+            iterations: 100000,
+            hash: 'SHA-256',
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+async function encryptAES(text, password) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await getKeyFromPassword(password);
+
+    const enc = new TextEncoder();
+    const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        enc.encode(text)
+    );
+
+    const ivBase64 = btoa(String.fromCharCode(...iv));
+    const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+
+    return `${ivBase64}:${encryptedBase64}`;
+}
+
+async function login() {
+    const id = document.getElementById("student-id").value;
+    const pw = document.getElementById("password").value;
+
+    if (id === "" || pw === "") {
+        alert("학번과 비밀번호를 모두 입력해주세요.");
+        return;
+    }
+
+    try {
+        const password = 'dUmgen8FDXnFn3J9LGRmcQ==:m7BI1/aK+fI+XgE4KRLuBbTM8LyVhzM9wumwHRMHe5f0sRSUwg82XQr+pkAdKzm8';
+        const encryptedPw = await encryptAES(pw, password);
+
+        const url = `/loading?id=${encodeURIComponent(id)}&pw=${encodeURIComponent(encryptedPw)}`;
+        window.location.href = url;
+    } catch (e) {
+        console.error("암호화 오류:", e);
+        alert("암호화 중 문제가 발생했습니다.");
+    }
+}
+
+function enterKey(event) {
+    if (event.key === "Enter") {
+        login();
+    }
+}
+</script>
+</body>
+</html>

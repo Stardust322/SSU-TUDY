@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SSU:TUDY Loading...</title>
+<link rel="website icon" type="png" href="http://localhost:8080/ssutudy_logo.png">
+<style>
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.loading span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: gray;
+    border-radius: 50%;
+    animation: loading 1s 0s linear infinite;
+}
+
+.loading span:nth-child(1) {
+    animation-delay: 0s;
+    background-color: red;
+}
+
+.loading span:nth-child(2) {
+    animation-delay: 0.2s;
+    background-color: orange;
+}
+
+.loading span:nth-child(3) {
+    animation-delay: 0.4s;
+    background-color: yellowgreen;
+}
+
+@keyframes loading {
+    0%, 100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+async function getKeyFromPassword(password, salt = 'salt') {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        enc.encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+    );
+
+    return crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: enc.encode(salt),
+            iterations: 100000,
+            hash: 'SHA-256',
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+async function decryptAES(encryptedStr, password) {
+    try {
+        const [ivBase64, encryptedBase64] = encryptedStr.split(':');
+        const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+        const encryptedBytes = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+
+        const key = await getKeyFromPassword(password);
+        const decryptedBuffer = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            key,
+            encryptedBytes
+        );
+
+        const dec = new TextDecoder();
+        return dec.decode(decryptedBuffer);
+    } catch (e) {
+        console.error("복호화 실패:", e);
+        return null;
+    }
+}
+
+const password = 'dUmgen8FDXnFn3J9LGRmcQ==:m7BI1/aK+fI+XgE4KRLuBbTM8LyVhzM9wumwHRMHe5f0sRSUwg82XQr+pkAdKzm8';
+
+async function login() {
+    const id = id
+    const pw = await decryptAES(decodeURIComponent(pw , password));
+    
+    if (id === "" || pw === "") {
+        alert("학번과 비밀번호를 모두 입력해주세요.");
+        return;
+    }
+    
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({id, pw})
+    }).then(response => {
+        if (response.ok) {
+            window.location.href = "/main";
+        } else {
+            alert("로그인 실패: 학번 또는 비밀번호를 확인하세요.");
+        }
+    }).catch(error => {
+        console.error("로그인 중 오류 발생:", error);
+        alert("서버 오류가 발생했습니다.");
+    });
+}
+login();
+</script>
+</head>
+<body>
+<div class="loading">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+<br>
+<div class="footer">
+    Loading...
+</div>
+</body>
+</html>

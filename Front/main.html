@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSU:TUDY</title>
+    <link rel="website icon" type="png" href="http://localhost:8080/ssutudy_logo.png">
+    <style>
+        body {
+            font-family: 'Malgun Gothic', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            width: 70px;
+            height: auto;
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 10px;
+            color: #000;
+        }
+        .nav {
+            background-color: #009bcb;
+            display: flex;
+            padding: 15px 20px;
+        }
+        .nav-item {
+            margin-right: 30px;
+            color: #c0f0ff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .nav-item-main {
+            margin-right: 30px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .container {
+            display: flex;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+        .welcome-section {
+            text-align: center;
+            max-width: 600px;
+        }
+        .welcome-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-bottom: 40px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .grade-input-btn {
+            background-color: #009bcb;
+            color: white;
+            font-size: 20px;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 155, 203, 0.3);
+        }
+        .grade-input-btn:hover {
+            background-color: #007ba3;
+        }
+        .profile-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .profile-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .profile-value {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="ssutudy_logo.png" alt="SSU:TUDY 로고" />
+            <div class="logo-text">/ SSU:TUDY</div>
+        </div>
+    </div>
+
+    <div class="nav">
+            <div class="nav-item-main">메인</div>  
+    <div class="nav-item" onclick="location.href='/grade-analysis'">성적 분석</div>
+    <div class="nav-item" onclick="location.href='/grade-management'">성적 관리</div>
+    <div class="nav-item">게시판</div>
+    <div class="nav-item">설정</div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1 class="welcome-title">환영해요! )" + x[0] + R"(님</h1>
+            
+            <div class="profile-info">
+                <div class="profile-row">
+                    <span class="profile-label">학번</span>
+                    <span class="profile-value">)" + x[1] + R"(</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">소속</span>
+                    <span class="profile-value">)" + x[2] + R"(</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">재학 여부</span>
+                    <span class="profile-value">)" + x[3] + R"(</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">학년/학기</span>
+                    <span class="profile-value">)" + x[4] + R"(</span>
+                </div>
+            </div>
+            
+            <div class="welcome-message">
+                아직 등록된 성적이 없습니다.<br>
+                성적을 입력하시면 개인 맞춤형 학습 분석을 제공해드립니다.
+            </div>
+            
+            <button class="grade-input-btn" onclick="location.href='/grade-management'">
+                📝 과목 추가하기
+            </button>
+        </div>
+    </div>
+</body>
+</html>)";
+        res.set_content(html, "text/html");
+    } else {
+        json averages = getGradeAverages(id);
+        double totalGPA = calculateGPA(id);
+        json currentSubjects = getCurrentSubjects(id);
+        
+        double teamworkAvg = getAverage(averages, "팀플");
+        double projectAvg = getAverage(averages, "플젝");
+        double attendanceAvg = getAverage(averages, "출석");
+        double examAvg = getAverage(averages, "시험");
+        
+        double totalAvg = totalGPA;
+        
+        std::string currentSubjectsHtml = "";
+        if (!currentSubjects.empty()) {
+            std::ostringstream htmlStream;
+            htmlStream << R"(
+            <div class="current-subjects">
+                <h3 style="color: #009bcb; margin-bottom: 15px;">📚 현재 수강 과목</h3>
+                <div class="subjects-list">)";
+            
+            for (size_t i = 0; i < currentSubjects.size(); i++) {
+                const auto& subject = currentSubjects[i];
+                
+                std::string name = "알 수 없음";
+                std::string type = "미분류";
+                std::string category = "";
+                std::string credit = "0";
+                
+                try {
+                    if (subject.contains("name") && subject["name"].is_string()) {
+                        name = subject["name"].get<std::string>();
+                    }
+                    if (subject.contains("type") && subject["type"].is_string()) {
+                        type = subject["type"].get<std::string>();
+                    }
+                    if (subject.contains("category") && subject["category"].is_string()) {
+                        category = subject["category"].get<std::string>();
+                    }
+                    if (subject.contains("credit") && subject["credit"].is_number()) {
+                        credit = std::to_string((int)subject["credit"].get<double>());
+                    }
+                } catch (const std::exception& e) {
+                    std::cout << "[ERROR] JSON 처리 오류: " << e.what() << std::endl;
+                }
+                
+                htmlStream << R"(
+                    <div class="subject-item">
+                        <div class="subject-main">
+                            <span class="subject-name">)" << name << R"(</span>
+                            <span class="subject-type">)" << type << R"(</span>
+                        </div>
+                        <div class="subject-details">
+                            <span class="subject-credit">)" << credit << R"(학점</span>)";
+                
+                if (!category.empty()) {
+                    htmlStream << R"(<span class="subject-category">)" << category << R"(</span>)";
+                }
+                
+                htmlStream << R"(
+                        </div>
+                    </div>)";
+            }
+            
+            htmlStream << R"(
+                </div>
+            </div>)";
+            
+            currentSubjectsHtml = htmlStream.str();
+        }
+        
+        std::string weakestCategory = "팀 프로젝트";
+        double minAvg = teamworkAvg;
+        
+        if (projectAvg < minAvg && projectAvg > 0) {
+            minAvg = projectAvg;
+            weakestCategory = "프로젝트";
+        }
+        if (attendanceAvg < minAvg && attendanceAvg > 0) {
+            minAvg = attendanceAvg;
+            weakestCategory = "출석";
+        }
+        if (examAvg < minAvg && examAvg > 0) {
+            minAvg = examAvg;
+            weakestCategory = "시험";
+        }
+        
+        std::string html = R"(<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSU:TUDY</title>
+    <link rel="website icon" type="png" href="http://localhost:8080/ssutudy_logo.png">
+    <style>
+        body {
+            font-family: 'Malgun Gothic', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            width: 70px;
+            height: auto;
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 10px;
+            color: #000;
+        }
+        .nav {
+            background-color: #009bcb;
+            display: flex;
+            padding: 15px 20px;
+        }
+        .nav-item {
+            margin-right: 30px;
+            color: #c0f0ff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .nav-item-main {
+            margin-right: 30px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .container {
+            display: flex;
+            padding: 20px;
+        }
+        .profile-card {
+            background-color: #f0f0f0;
+            padding: 20px;
+            width: 30%;
+        }
+        .profile-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .profile-row {
+            display: flex;
+            border-bottom: 1px solid white;
+            padding: 10px 0;
+            background-color: white;
+            margin-bottom: 10px;
+        }
+        .profile-label {
+            width: 100px;
+            font-weight: bold;
+            padding-left: 10px;
+        }
+        .profile-value {
+            flex-grow: 1;
+            color: purple;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .current-subjects {
+            margin-top: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #009bcb;
+        }
+        .subjects-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 8px;
+            border-bottom: 1px solid #f0f0f0;
+            background-color: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #009bcb;
+        }
+        .subject-main {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .subject-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 15px;
+        }
+        .subject-type {
+            color: #666;
+            font-size: 12px;
+            background-color: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            width: fit-content;
+        }
+        .subject-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .subject-credit {
+            color: #009bcb;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .subject-category {
+            color: #28a745;
+            font-size: 11px;
+            background-color: #d4edda;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid #c3e6cb;
+            
+        }
+        .score-section {
+            margin-left: 20px;
+            flex-grow: 1;
+        }
+        .score-display {
+            font-size: 60px;
+            font-weight: bold;
+            color: #2E86DE;
+            text-align: left;
+            margin-bottom: 50px;
+        }
+        .score-max {
+            font-size: 40px;
+            color: #333;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 250px;
+            background-color: #f0f0f0;
+            padding: 30px 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .chart-bar {
+            width: 18%;
+            background-color: #2E86DE;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .chart-bar:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(46, 134, 222, 0.3);
+        }
+        .chart-bar.yellow {
+            background-color: #FFC107;
+        }
+        .chart-bar.red {
+            background-color: #DC3545;
+        }
+        .chart-label {
+            position: absolute;
+            top: -30px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            background-color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chart-title {
+            position: absolute;
+            bottom: -35px;
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            width: 100%;
+        }
+        .message {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 18px;
+            padding: 20px;
+            background-color: #e7f3ff;
+            border-radius: 10px;
+            border-left: 5px solid #2E86DE;
+        }
+        .add-grade-btn {
+            background-color: #009bcb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .add-grade-btn:hover {
+            background-color: #007ba3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="ssutudy_logo.png" alt="SSU:TUDY 로고" />
+            <div class="logo-text">/ SSU:TUDY</div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <div class="nav-item-main">메인</div>
+    <div class="nav-item" onclick="location.href='/grade-analysis'">성적 분석</div>
+    <div class="nav-item" onclick="location.href='/grade-management'">성적 관리</div>
+        <div class="nav-item">게시판</div>
+        <div class="nav-item">설정</div>
+    </div>
+
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-title">환영해요! )" + x[0] + R"(님.</div>
+            
+            <div class="profile-row">
+                <div class="profile-label">학번</div>
+                <div class="profile-value">)" + x[1] + R"(</div>
+            </div>
+            
+            <div class="profile-row">
+                <div class="profile-label">소속</div>
+                <div class="profile-value">)" + x[2] + R"(</div>
+            </div>
+            
+            <div class="profile-row">
+                <div class="profile-label">재학 여부</div>
+                <div class="profile-value">)" + x[3] + R"(</div>
+            </div>
+            
+            <div class="profile-row">
+                <div class="profile-label">학년/학기</div>
+                <div class="profile-value">)" + x[4] + R"(</div>
+            </div>
+            
+            <button class="add-grade-btn" onclick="location.href='/grade-management'">
+                📝 과목 추가하기
+            </button>
+            
+            )" + currentSubjectsHtml + R"(
+        </div>
+        
+        <div class="score-section">
+            <div class="score-display">
+                )" + std::to_string(totalAvg).substr(0, 4) + R"(<span class="score-max">/4.5</span>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-bar)" + (teamworkAvg < 3.5 && teamworkAvg > 0 ? " yellow" : teamworkAvg < 2.5 && teamworkAvg > 0 ? " red" : "") + R"(" style="height: )" + std::to_string(teamworkAvg > 0 ? (teamworkAvg/4.5)*100 : 0) + R"(%;">
+                    <span class="chart-label">)" + (teamworkAvg > 0 ? std::to_string(teamworkAvg).substr(0, 4) : "N/A") + R"(</span>
+                    <span class="chart-title">팀플</span>
+                </div>
+                <div class="chart-bar)" + (projectAvg < 3.5 && projectAvg > 0 ? " yellow" : projectAvg < 2.5 && projectAvg > 0 ? " red" : "") + R"(" style="height: )" + std::to_string(projectAvg > 0 ? (projectAvg/4.5)*100 : 0) + R"(%;">
+                    <span class="chart-label">)" + (projectAvg > 0 ? std::to_string(projectAvg).substr(0, 4) : "N/A") + R"(</span>
+                    <span class="chart-title">플젝</span>
+                </div>
+                <div class="chart-bar)" + (attendanceAvg < 3.5 && attendanceAvg > 0 ? " yellow" : attendanceAvg < 2.5 && attendanceAvg > 0 ? " red" : "") + R"(" style="height: )" + std::to_string(attendanceAvg > 0 ? (attendanceAvg/4.5)*100 : 0) + R"(%;">
+                    <span class="chart-label">)" + (attendanceAvg > 0 ? std::to_string(attendanceAvg).substr(0, 4) : "N/A") + R"(</span>
+                    <span class="chart-title">출석</span>
+                </div>
+                <div class="chart-bar)" + (examAvg < 3.5 && examAvg > 0 ? " yellow" : examAvg < 2.5 && examAvg > 0 ? " red" : "") + R"(" style="height: )" + std::to_string(examAvg > 0 ? (examAvg/4.5)*100 : 0) + R"(%;">
+                    <span class="chart-label">)" + (examAvg > 0 ? std::to_string(examAvg).substr(0, 4) : "N/A") + R"(</span>
+                    <span class="chart-title">시험</span>
+                </div>
+            </div>
+            
+            <div class="message">
+                💡 weakestCategory 위주로 공부해볼까요?
+            </div>
+        </div>
+    </div>
+</body>
+</html>
