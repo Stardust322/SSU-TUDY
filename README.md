@@ -9,6 +9,7 @@
 >> + Front release.
 >> + Back release.
 
+이미 수강한 강의 데이터를 바탕으로 현재 수강중인 강의 성적을 예측하는 Web Service.
 
 Other Project **[SSU_lms](https://github.com/Stardust322/SSU_LMS)** 
 <hr/>
